@@ -4,6 +4,7 @@ import com.v11e.security.dto.AuthenticationRequest;
 import com.v11e.security.dto.AuthenticationResponse;
 import com.v11e.security.dto.RegisterRequest;
 import com.v11e.security.repository.UserRepository;
+import com.v11e.security.user.Role;
 import com.v11e.security.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +28,7 @@ public class AuthenticationService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
                 .build();
         repository.save(user);
         var jwtToken = service.generateToken(user);
@@ -36,7 +38,9 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         var jwtToken = service.generateToken(user);
